@@ -18,37 +18,60 @@ export const JobsBoard: React.FC<JobsBoardProps> = ({ onApply }) => {
     setDebugLog([]);
     setJobs([]);
 
-    // Direct DOU URL as requested
-    const targetUrl = "https://jobs.dou.ua/vacancies/?category=Project%20Manager&exp=5plus";
-    
-    // Switch to AllOrigins proxy to avoid 403 Forbidden from direct CORS proxies
-    // AllOrigins wraps content in JSON which often bypasses basic WAF blocks
-    const proxyUrl = `https://api.allorigins.win/get?url=${encodeURIComponent(targetUrl)}`;
+    // Use the HTML listing page instead of RSS
+    const pageUrl = "https://jobs.dou.ua/vacancies/?category=Project%20Manager&exp=5plus";
+    // Try multiple proxies to avoid CORS/422
+    const candidateUrls = [
+        // AllOrigins raw
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(pageUrl)}`,
+        // AllOrigins JSON wrapper
+        `https://api.allorigins.win/get?url=${encodeURIComponent(pageUrl)}`,
+        // codetabs proxy
+        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(pageUrl)}`,
+        // isomorphic-git simple CORS proxy
+        `https://cors.isomorphic-git.org/${pageUrl}`,
+        // jina https proxy
+        `https://r.jina.ai/${pageUrl}`,
+        // jina http proxy (fallback)
+        `https://r.jina.ai/http://jobs.dou.ua/vacancies/?category=Project%20Manager&exp=5plus`
+    ];
 
     try {
-        setDebugLog(prev => [...prev, `Target: ${targetUrl}`]);
-        setDebugLog(prev => [...prev, "Fetching via AllOrigins proxy..."]);
+        setDebugLog(prev => [...prev, `Target: ${pageUrl}`]);
+        setDebugLog(prev => [...prev, "Fetching HTML via proxies..."]);
 
-        const response = await fetch(proxyUrl);
-        
-        if (!response.ok) {
-            throw new Error(`Proxy HTTP Error: ${response.status}`);
+        let htmlText = "";
+        let lastStatus = 0;
+        let lastUrl = "";
+
+        for (const url of candidateUrls) {
+            lastUrl = url;
+            try {
+                setDebugLog(prev => [...prev, `Trying: ${url}`]);
+                const response = await fetch(url, { headers: { 'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8' } });
+                lastStatus = response.status;
+                if (!response.ok) {
+                    setDebugLog(prev => [...prev, `Proxy HTTP Error: ${response.status}`]);
+                    continue;
+                }
+                // AllOrigins "get" variant wraps payload in JSON
+                if (url.includes('/get?url=')) {
+                    const json = await response.json();
+                    htmlText = json?.contents || "";
+                } else {
+                    htmlText = await response.text();
+                }
+                if (htmlText) break;
+            } catch (e: any) {
+                setDebugLog(prev => [...prev, `Fetch failed: ${e.message || e}`]);
+            }
         }
 
-        const data = await response.json();
-
-        // Check the status code reported by AllOrigins for the target site
-        if (data.status?.http_code && data.status.http_code >= 400) {
-             throw new Error(`Target site returned ${data.status.http_code} Forbidden/Error`);
-        }
-
-        const htmlText = data.contents;
-        
         if (!htmlText) {
-             throw new Error("Received empty content from proxy.");
+            throw new Error(`All proxies failed. Last status ${lastStatus} from ${lastUrl}`);
         }
-
-        setDebugLog(prev => [...prev, `Received ${htmlText.length} bytes. Parsing DOM...`]);
+        
+        setDebugLog(prev => [...prev, `Received ${htmlText.length} bytes. Parsing HTML...`]);
 
         const parser = new DOMParser();
         const doc = parser.parseFromString(htmlText, 'text/html');
@@ -56,14 +79,6 @@ export const JobsBoard: React.FC<JobsBoardProps> = ({ onApply }) => {
         // DOU Structure: list of li.l-vacancy
         const vacancyItems = doc.querySelectorAll('.l-vacancy');
         
-        if (vacancyItems.length === 0) {
-             // Fallback check: sometimes structure is different or blocked
-             if (htmlText.includes("reCAPTCHA") || htmlText.includes("security check")) {
-                 throw new Error("Access blocked by DOU security (CAPTCHA/WAF).");
-             }
-             setDebugLog(prev => [...prev, "No vacancy elements found. HTML structure might have changed."]);
-        }
-
         const parsedJobs: Job[] = [];
 
         vacancyItems.forEach((el, index) => {
@@ -79,10 +94,7 @@ export const JobsBoard: React.FC<JobsBoardProps> = ({ onApply }) => {
 
              // Company
              const companyEl = el.querySelector('.company');
-             // Company often has text like " — CompanyName" inside specific structure, but textContent usually works
-             // Sometimes company name is in an anchor tag inside .company
              let company = companyEl?.textContent?.trim() || 'Unknown Company';
-             // Clean up "—" prefix if present (DOU often formats it "Job Title — Company") in some views, or just inside the div
              company = company.replace(/^—\s*/, '');
 
              // Description
@@ -115,11 +127,66 @@ export const JobsBoard: React.FC<JobsBoardProps> = ({ onApply }) => {
                  salary,
                  type,
                  description,
-                 tags: [], // Hard to extract cleanly from list view
+                 tags: [],
                  link,
-                 pubDate: new Date() // No easy way to parse relative dates like "2 hours ago" without library
+                 pubDate: new Date()
              });
         });
+
+        // Fallback: jina proxy may return simplified HTML/markdown without classes
+        if (parsedJobs.length === 0) {
+            setDebugLog(prev => [...prev, "DOM parse yielded 0; trying regex fallback..."]);
+
+            // Regex for markdown-style links: [Title](https://jobs.dou.ua/vacancies/...)
+            const markdownLinkRegex = /\[([^\]]+)\]\((https?:\/\/jobs\.dou\.ua\/vacancies\/[^)]+)\)/g;
+            let match;
+            while ((match = markdownLinkRegex.exec(htmlText)) !== null && parsedJobs.length < 50) {
+                const title = match[1].trim();
+                const link = match[2].trim();
+                parsedJobs.push({
+                    id: link,
+                    title,
+                    company: 'DOU',
+                    location: 'Ukraine',
+                    salary: 'Open',
+                    type: 'Remote/Office',
+                    description: '',
+                    tags: [],
+                    link,
+                    pubDate: new Date()
+                });
+            }
+
+            // Regex for HTML anchors if still no jobs
+            if (parsedJobs.length === 0) {
+                const anchorRegex = /<a[^>]+href="(\/vacancies\/[^"]+)"[^>]*>([^<]+)<\/a>/gi;
+                while ((match = anchorRegex.exec(htmlText)) !== null && parsedJobs.length < 50) {
+                    const linkPath = match[1];
+                    const title = match[2].trim();
+                    const link = linkPath.startsWith('http') ? linkPath : `https://jobs.dou.ua${linkPath}`;
+                    parsedJobs.push({
+                        id: link,
+                        title: title || 'Untitled Role',
+                        company: 'DOU',
+                        location: 'Ukraine',
+                        salary: 'Open',
+                        type: 'Remote/Office',
+                        description: '',
+                        tags: [],
+                        link,
+                        pubDate: new Date()
+                    });
+                }
+            }
+
+            if (parsedJobs.length === 0) {
+                // Fallback check: sometimes structure is different or blocked
+                if (htmlText.includes("reCAPTCHA") || htmlText.includes("security check")) {
+                    throw new Error("Access blocked by DOU security (CAPTCHA/WAF).");
+                }
+                setDebugLog(prev => [...prev, "No vacancy elements found after fallback. Structure may have changed."]);
+            }
+        }
 
         setDebugLog(prev => [...prev, `Parsed ${parsedJobs.length} jobs.`]);
 
