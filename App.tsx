@@ -4,10 +4,15 @@ import { Dashboard } from './components/Dashboard';
 import { ResumeBuilder } from './components/ResumeBuilder';
 import { JobsBoard } from './components/JobsBoard';
 import { PictureEditor } from './components/PictureEditor';
+import { Login } from './components/Login';
 import { AppStatus, ApplicationStats, Job, ResumeData } from './types';
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [user, setUser] = useState<{ name: string; email: string; role: string } | null>(null);
+  const handleRoleUpdate = (role: string) => {
+    setUser(prev => (prev ? { ...prev, role } : prev));
+  };
   
   // Stats State
   const [stats, setStats] = useState<ApplicationStats[]>([
@@ -60,6 +65,10 @@ function App() {
   };
 
   const renderContent = () => {
+    if (!user) {
+      return <Login onLogin={setUser} />;
+    }
+
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard stats={stats} />;
@@ -76,7 +85,13 @@ function App() {
 
   return (
     <div className="flex flex-col md:flex-row min-h-screen bg-[#f9f9f7] text-[#1a1a1a]">
-      <Sidebar activeTab={activeTab} setActiveTab={setActiveTab} />
+      <Sidebar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        userName={user?.name || 'Guest'}
+        userRole={user?.role || 'Role not set'}
+        onRoleUpdate={handleRoleUpdate}
+      />
       <main className="flex-1 h-screen overflow-y-auto relative">
         {renderContent()}
       </main>
