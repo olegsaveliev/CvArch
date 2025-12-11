@@ -211,8 +211,12 @@ export const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ resumeData, setRes
                 <h1 className="font-serif text-6xl text-ink tracking-tight mb-2">{resumeData.fullName}</h1>
                 <p className="text-xl font-sans text-gray-500 uppercase tracking-[0.2em]">{resumeData.title}</p>
               </div>
-              <div className="w-16 h-16 border-2 border-black rounded-full flex items-center justify-center">
-                 <span className="font-serif italic text-2xl">AK</span>
+              <div className="w-16 h-16 border-2 border-black rounded-full flex items-center justify-center overflow-hidden">
+                 {resumeData.profilePicture ? (
+                     <img src={resumeData.profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                 ) : (
+                     <span className="font-serif italic text-2xl">AK</span>
+                 )}
               </div>
             </div>
 

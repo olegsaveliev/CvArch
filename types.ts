@@ -1,3 +1,4 @@
+
 export interface Job {
   id: string;
   title: string;
@@ -36,4 +37,5 @@ export interface ResumeData {
   summary: string;
   skills: string;
   experience: ResumeSection[];
+  profilePicture?: string;
 }

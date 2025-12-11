@@ -3,6 +3,7 @@ import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './components/Dashboard';
 import { ResumeBuilder } from './components/ResumeBuilder';
 import { JobsBoard } from './components/JobsBoard';
+import { PictureEditor } from './components/PictureEditor';
 import { AppStatus, ApplicationStats, Job, ResumeData } from './types';
 
 function App() {
@@ -53,12 +54,19 @@ function App() {
     alert(`Application submitted to ${job.company} for ${job.title}!`);
   };
 
+  const handleAddToResume = (imgData: string) => {
+    setResumeData(prev => ({ ...prev, profilePicture: imgData }));
+    setActiveTab('resume');
+  };
+
   const renderContent = () => {
     switch (activeTab) {
       case 'dashboard':
         return <Dashboard stats={stats} />;
       case 'resume':
         return <ResumeBuilder resumeData={resumeData} setResumeData={setResumeData} />;
+      case 'picture-edit':
+        return <PictureEditor onAddToResume={handleAddToResume} />;
       case 'jobs':
         return <JobsBoard onApply={handleApply} />;
       default:
