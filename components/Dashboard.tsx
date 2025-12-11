@@ -52,11 +52,11 @@ export const Dashboard: React.FC<DashboardProps> = ({ stats }) => {
 
       <div className="flex flex-col md:flex-row gap-8 items-stretch">
         {/* Chart Section - Styled like a drawing on paper */}
-        <div className="w-full md:w-2/3 bg-white border-2 border-ink shadow-sketch p-8 h-[450px] relative">
+        <div className="w-full md:w-2/3 bg-white border-2 border-ink shadow-sketch p-8 h-[450px] relative min-h-[320px] min-w-[300px]">
            <div className="absolute top-0 left-1/2 -translate-x-1/2 -mt-3 bg-paper px-4 border border-gray-300 transform -rotate-1 shadow-sm">
               <span className="font-hand font-bold text-lg">Success Distribution</span>
            </div>
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" style={{ minHeight: 300, minWidth: 280 }}>
             <PieChart>
               <Pie
                 data={stats}

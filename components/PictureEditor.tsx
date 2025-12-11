@@ -40,6 +40,12 @@ export const PictureEditor: React.FC<PictureEditorProps> = ({ onAddToResume }) =
       }
   };
 
+  // Resolve API key from multiple sources: AI Studio helper, env variables
+  const resolveApiKey = () => {
+    const envKey = (process.env.API_KEY || process.env.GEMINI_API_KEY || (import.meta as any).env?.GEMINI_API_KEY) as string | undefined;
+    return envKey;
+  };
+
   const handleGenerate = async () => {
     if (!originalImage) return;
 
@@ -60,15 +66,21 @@ export const PictureEditor: React.FC<PictureEditorProps> = ({ onAddToResume }) =
             console.warn("AIStudio check failed, proceeding with env key if available", e);
         }
 
-        // Initialize API with fresh key from env (which might be updated by openSelectKey)
-        const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+        // Initialize API with key from env (or AI Studio helper)
+        const apiKey = resolveApiKey();
+        if (!apiKey) {
+            setError("API key is missing. Please add GEMINI_API_KEY to .env.local and restart the dev server, or use Configure API Key.");
+            return;
+        }
+        const ai = new GoogleGenAI({ apiKey });
 
         // Extract base64 data without header
         const base64Data = originalImage.split(',')[1];
         const mimeType = originalImage.split(';')[0].split(':')[1];
 
         const response = await ai.models.generateContent({
-            model: 'gemini-3-pro-image-preview', // "nano banana pro"
+            // Use faster image-capable model; swap to 'gemini-3-pro-image-preview' if preferred
+            model: 'gemini-2.5-flash-image',
             contents: {
                 parts: [
                     {

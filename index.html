@@ -6,14 +6,25 @@
     <title>Ink & Code | IT Career Architect</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-      // Keep window.ethereum configurable so browser extensions that inject it
-      // don't crash when they attempt to redefine the property.
-      if (!Object.getOwnPropertyDescriptor(window, 'ethereum')) {
-        Object.defineProperty(window, 'ethereum', {
-          value: undefined,
-          writable: true,
-          configurable: true,
-        });
+      // Avoid crashes from extensions that inject a non-configurable window.ethereum
+      try {
+        const desc = Object.getOwnPropertyDescriptor(window, 'ethereum');
+        if (!desc) {
+          Object.defineProperty(window, 'ethereum', {
+            value: undefined,
+            writable: true,
+            configurable: true,
+          });
+        } else if (desc.configurable) {
+          // Normalize to a configurable descriptor so later injectors can redefine safely
+          Object.defineProperty(window, 'ethereum', {
+            ...desc,
+            configurable: true,
+            writable: true,
+          });
+        }
+      } catch (err) {
+        console.warn('ethereum descriptor check failed:', err);
       }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,400&family=Inter:wght@300;400;600&family=Patrick+Hand&display=swap" rel="stylesheet">
