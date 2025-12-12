@@ -7,7 +7,7 @@ interface ResumeBuilderProps {
   setResumeData: React.Dispatch<React.SetStateAction<ResumeData>>;
 }
 
-type SectionType = 'skills' | 'summary' | 'experience';
+type SectionType = 'skills' | 'summary' | 'experience' | 'education' | 'certifications';
 
 type FontOption = 'Arial' | 'Times New Roman' | 'Calibri' | 'Georgia' | 'Roboto';
 
@@ -16,7 +16,7 @@ export const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ resumeData, setRes
   const [suggestions, setSuggestions] = useState<ResumeSuggestions | null>(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [selectedFont, setSelectedFont] = useState<FontOption>('Arial');
-  const [sectionOrder, setSectionOrder] = useState<SectionType[]>(['skills', 'summary', 'experience']);
+  const [sectionOrder, setSectionOrder] = useState<SectionType[]>(['skills', 'summary', 'experience', 'education', 'certifications']);
   const [draggedSection, setDraggedSection] = useState<SectionType | null>(null);
 
   const handleChange = (field: keyof ResumeData, value: string) => {
@@ -45,6 +45,46 @@ export const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ resumeData, setRes
     setResumeData(prev => ({
       ...prev,
       experience: prev.experience.filter(exp => exp.id !== id)
+    }));
+  };
+
+  const handleAddEducation = () => {
+    const newEducation = {
+      id: `edu-${Date.now()}`,
+      institution: '',
+      degree: '',
+      startDate: '',
+      endDate: ''
+    };
+    setResumeData(prev => ({
+      ...prev,
+      education: [...(prev.education || []), newEducation]
+    }));
+  };
+
+  const handleDeleteEducation = (id: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      education: (prev.education || []).filter(edu => edu.id !== id)
+    }));
+  };
+
+  const handleAddCertification = () => {
+    const newCertification = {
+      id: `cert-${Date.now()}`,
+      name: '',
+      dateReceived: ''
+    };
+    setResumeData(prev => ({
+      ...prev,
+      certifications: [...(prev.certifications || []), newCertification]
+    }));
+  };
+
+  const handleDeleteCertification = (id: string) => {
+    setResumeData(prev => ({
+      ...prev,
+      certifications: (prev.certifications || []).filter(cert => cert.id !== id)
     }));
   };
 
@@ -188,7 +228,7 @@ export const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ resumeData, setRes
           <h2 className="font-hand text-3xl font-bold text-ink flex items-center gap-2">
             <span className="text-2xl">✏️</span> Draft Details
           </h2>
-          <button
+            <button 
             onClick={handleReviewResume}
             disabled={isReviewing}
             className="px-4 py-2 text-sm font-hand font-bold border-2 border-purple-900 text-purple-900 hover:bg-purple-900 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm flex items-center gap-2"
@@ -207,7 +247,7 @@ export const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ resumeData, setRes
                 <span>Review CV</span>
               </>
             )}
-          </button>
+            </button>
         </div>
 
         <div className="space-y-8 font-hand text-lg">
@@ -317,16 +357,16 @@ export const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ resumeData, setRes
                  
                  <div className="space-y-3 pr-10">
                    <div className="grid grid-cols-2 gap-2">
-                     <input 
+                 <input 
                        className="w-full bg-transparent text-lg font-bold text-ink outline-none border-b border-transparent focus:border-gray-300"
                        placeholder="Job Title"
                        value={exp.title || ''}
-                       onChange={(e) => {
-                         const newExp = [...resumeData.experience];
-                         newExp[idx].title = e.target.value;
-                         setResumeData({...resumeData, experience: newExp});
-                       }}
-                     />
+                    onChange={(e) => {
+                      const newExp = [...resumeData.experience];
+                      newExp[idx].title = e.target.value;
+                      setResumeData({...resumeData, experience: newExp});
+                    }}
+                 />
                      <input 
                        className="w-full bg-transparent text-sm text-ink outline-none border-b border-transparent focus:border-gray-300"
                        placeholder="Company Name"
@@ -385,16 +425,16 @@ export const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ resumeData, setRes
                    
                    <div>
                      <label className="block text-xs font-sans text-gray-400 mb-1">Bullet Points (one per line)</label>
-                     <textarea 
+                 <textarea 
                        className="w-full bg-transparent text-xs text-gray-600 outline-none resize-none h-20 leading-relaxed"
                        placeholder="• First achievement&#10;• Second achievement&#10;• Third achievement"
                        value={(exp.bulletPoints || []).join('\n')}
-                       onChange={(e) => {
-                         const newExp = [...resumeData.experience];
+                    onChange={(e) => {
+                      const newExp = [...resumeData.experience];
                          newExp[idx].bulletPoints = e.target.value.split('\n').filter(b => b.trim());
-                         setResumeData({...resumeData, experience: newExp});
-                       }}
-                     />
+                      setResumeData({...resumeData, experience: newExp});
+                    }}
+                 />
                    </div>
                  </div>
                </div>
@@ -408,6 +448,126 @@ export const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ resumeData, setRes
                </svg>
                <span>Add Experience</span>
              </button>
+          </div>
+
+          {/* Education Section */}
+          <div className="pt-8 border-t-2 border-dashed border-gray-300">
+            <label className="block text-sm font-sans text-gray-400 mb-6 uppercase tracking-wider">Education</label>
+            {(resumeData.education || []).map((edu, idx) => (
+              <div key={edu.id} className="mb-8 pl-4 border-l-4 border-gray-200 hover:border-ink transition-colors group relative pb-4">
+                <button
+                  onClick={() => handleDeleteEducation(edu.id)}
+                  className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
+                  title="Delete education"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+                <div className="space-y-3 pr-10">
+                  <input 
+                    className="w-full bg-transparent text-lg font-bold text-ink outline-none border-b border-transparent focus:border-gray-300"
+                    placeholder="Institution Name"
+                    value={edu.institution || ''}
+                    onChange={(e) => {
+                      const newEdu = [...(resumeData.education || [])];
+                      newEdu[idx].institution = e.target.value;
+                      setResumeData({...resumeData, education: newEdu});
+                    }}
+                  />
+                  <input 
+                    className="w-full bg-transparent text-sm text-ink outline-none border-b border-transparent focus:border-gray-300"
+                    placeholder="Degree"
+                    value={edu.degree || ''}
+                    onChange={(e) => {
+                      const newEdu = [...(resumeData.education || [])];
+                      newEdu[idx].degree = e.target.value;
+                      setResumeData({...resumeData, education: newEdu});
+                    }}
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <input 
+                      className="w-full bg-transparent text-xs text-gray-500 outline-none border-b border-transparent focus:border-gray-300"
+                      placeholder="Start Date (MM/YYYY)"
+                      value={edu.startDate || ''}
+                      onChange={(e) => {
+                        const newEdu = [...(resumeData.education || [])];
+                        newEdu[idx].startDate = e.target.value;
+                        setResumeData({...resumeData, education: newEdu});
+                      }}
+                    />
+                    <input 
+                      className="w-full bg-transparent text-xs text-gray-500 outline-none border-b border-transparent focus:border-gray-300"
+                      placeholder="End Date (MM/YYYY or Present)"
+                      value={edu.endDate || ''}
+                      onChange={(e) => {
+                        const newEdu = [...(resumeData.education || [])];
+                        newEdu[idx].endDate = e.target.value;
+                        setResumeData({...resumeData, education: newEdu});
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            ))}
+            <button
+              onClick={handleAddEducation}
+              className="w-full py-3 border-2 border-dashed border-gray-300 hover:border-ink hover:bg-gray-50 transition-all rounded-lg flex items-center justify-center gap-2 font-hand text-lg text-gray-500 hover:text-ink group"
+            >
+              <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <span>Add Education</span>
+            </button>
+          </div>
+
+          {/* Certifications Section */}
+          <div className="pt-8 border-t-2 border-dashed border-gray-300">
+            <label className="block text-sm font-sans text-gray-400 mb-6 uppercase tracking-wider">Certifications</label>
+            {(resumeData.certifications || []).map((cert, idx) => (
+              <div key={cert.id} className="mb-8 pl-4 border-l-4 border-gray-200 hover:border-ink transition-colors group relative pb-4">
+                <button
+                  onClick={() => handleDeleteCertification(cert.id)}
+                  className="absolute top-0 right-0 opacity-0 group-hover:opacity-100 transition-opacity p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded"
+                  title="Delete certification"
+                >
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+                <div className="space-y-3 pr-10">
+                  <input 
+                    className="w-full bg-transparent text-lg font-bold text-ink outline-none border-b border-transparent focus:border-gray-300"
+                    placeholder="Certification Name"
+                    value={cert.name || ''}
+                    onChange={(e) => {
+                      const newCerts = [...(resumeData.certifications || [])];
+                      newCerts[idx].name = e.target.value;
+                      setResumeData({...resumeData, certifications: newCerts});
+                    }}
+                  />
+                  <input 
+                    className="w-full bg-transparent text-xs text-gray-500 outline-none border-b border-transparent focus:border-gray-300"
+                    placeholder="Date Received (MM/YYYY)"
+                    value={cert.dateReceived || ''}
+                    onChange={(e) => {
+                      const newCerts = [...(resumeData.certifications || [])];
+                      newCerts[idx].dateReceived = e.target.value;
+                      setResumeData({...resumeData, certifications: newCerts});
+                    }}
+                  />
+                </div>
+              </div>
+            ))}
+            <button
+              onClick={handleAddCertification}
+              className="w-full py-3 border-2 border-dashed border-gray-300 hover:border-ink hover:bg-gray-50 transition-all rounded-lg flex items-center justify-center gap-2 font-hand text-lg text-gray-500 hover:text-ink group"
+            >
+              <svg className="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              </svg>
+              <span>Add Certification</span>
+            </button>
           </div>
         </div>
       </div>
@@ -442,9 +602,9 @@ export const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ resumeData, setRes
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </div>
-          </div>
-          
-          <button
+             </div>
+
+                <button 
             onClick={handleDownloadPDF}
             className="px-4 py-2 bg-ink text-white font-hand font-bold text-sm hover:bg-gray-800 transition-all shadow-sketch active:shadow-none active:translate-x-[2px] active:translate-y-[2px] flex items-center gap-2"
           >
@@ -452,8 +612,8 @@ export const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ resumeData, setRes
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
             </svg>
             Download PDF
-          </button>
-        </div>
+                </button>
+             </div>
 
         <div 
           className="p-16 h-full overflow-y-auto relative z-10" 
@@ -490,16 +650,16 @@ export const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ resumeData, setRes
                 )}
               </div>
               <div 
-                className="w-24 h-24 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0 ml-4"
+                className="w-32 h-24 flex items-center justify-center overflow-hidden flex-shrink-0 ml-4"
                 style={{ border: '2px solid #475569' }}
               >
-                {resumeData.profilePicture ? (
-                  <img src={resumeData.profilePicture} alt="Profile" className="w-full h-full object-cover" />
-                ) : (
+                 {resumeData.profilePicture ? (
+                     <img src={resumeData.profilePicture} alt="Profile" className="w-full h-full object-cover" />
+                 ) : (
                   <span className="italic text-3xl font-bold" style={{ color: '#1e293b', fontFamily: getFontFamily(selectedFont) }}>
                     {resumeData.fullName.split(' ').map(n => n[0]).join('').toUpperCase()}
                   </span>
-                )}
+                 )}
               </div>
             </div>
           </div>
@@ -541,8 +701,8 @@ export const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ resumeData, setRes
                       >
                         Skills & Tools
                       </h4>
-                      <div className="flex flex-col gap-2">
-                        {resumeData.skills.split(',').map((skill, i) => (
+                    <div className="flex flex-col gap-2">
+                      {resumeData.skills.split(',').map((skill, i) => (
                           <span 
                             key={i} 
                             className="text-sm"
@@ -550,9 +710,9 @@ export const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ resumeData, setRes
                           >
                             • {skill.trim()}
                           </span>
-                        ))}
-                      </div>
+                      ))}
                     </div>
+                  </div>
                   )}
 
                   {/* Summary Section */}
@@ -572,14 +732,14 @@ export const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ resumeData, setRes
                         className="text-base leading-relaxed"
                         style={{ color: '#1e293b', fontFamily: getFontFamily(selectedFont) }}
                       >
-                        {resumeData.summary}
-                      </p>
-                    </div>
+                      {resumeData.summary}
+                    </p>
+                  </div>
                   )}
 
                   {/* Experience Section */}
                   {sectionType === 'experience' && (
-                    <div>
+                  <div>
                       <h4 
                         className="text-2xl mb-6 pb-2 font-bold uppercase"
                         style={{ 
@@ -590,7 +750,7 @@ export const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ resumeData, setRes
                       >
                         EXPERIENCE
                       </h4>
-                      {resumeData.experience.map(exp => (
+                    {resumeData.experience.map(exp => (
                         <div key={exp.id} className="mb-8">
                           {/* Dates and Location */}
                           <div className="mb-2">
@@ -647,8 +807,73 @@ export const ResumeBuilder: React.FC<ResumeBuilderProps> = ({ resumeData, setRes
                               className="text-sm leading-relaxed"
                               style={{ color: '#1e293b', fontFamily: getFontFamily(selectedFont) }}
                             >
-                              {exp.content}
-                            </p>
+                          {exp.content}
+                        </p>
+                          )}
+                      </div>
+                    ))}
+                    </div>
+                  )}
+
+                  {/* Education Section */}
+                  {sectionType === 'education' && (
+                    <div>
+                      <h4 
+                        className="text-2xl mb-6 pb-2 font-bold uppercase"
+                        style={{ 
+                      borderBottom: '2px solid #1e293b',
+                      color: '#1e293b',
+                      fontFamily: getFontFamily(selectedFont)
+                        }}
+                      >
+                        EDUCATION
+                      </h4>
+                      {(resumeData.education || []).map(edu => (
+                        <div key={edu.id} className="mb-6">
+                          <div className="mb-2">
+                            <span className="font-bold text-base" style={{ color: '#1e293b', fontFamily: getFontFamily(selectedFont) }}>
+                              {edu.institution}
+                            </span>
+                            {edu.degree && (
+                              <span className="text-base ml-2" style={{ color: '#1e293b', fontFamily: getFontFamily(selectedFont) }}>
+                                - {edu.degree}
+                              </span>
+                            )}
+                          </div>
+                          {(edu.startDate || edu.endDate) && (
+                            <div className="text-sm" style={{ color: '#1e293b', fontFamily: getFontFamily(selectedFont) }}>
+                              {edu.startDate && edu.endDate ? `${edu.startDate} - ${edu.endDate}` : edu.startDate || edu.endDate || ''}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Certifications Section */}
+                  {sectionType === 'certifications' && (
+                    <div>
+                      <h4 
+                        className="text-2xl mb-6 pb-2 font-bold uppercase"
+                        style={{ 
+                      borderBottom: '2px solid #1e293b',
+                      color: '#1e293b',
+                      fontFamily: getFontFamily(selectedFont)
+                        }}
+                      >
+                        CERTIFICATIONS
+                      </h4>
+                      {(resumeData.certifications || []).map(cert => (
+                        <div key={cert.id} className="mb-4">
+                          <div className="mb-1">
+                            <span className="font-bold text-base" style={{ color: '#1e293b', fontFamily: getFontFamily(selectedFont) }}>
+                              {cert.name}
+                            </span>
+                          </div>
+                          {cert.dateReceived && (
+                            <div className="text-sm" style={{ color: '#1e293b', fontFamily: getFontFamily(selectedFont) }}>
+                              {cert.dateReceived}
+                            </div>
                           )}
                         </div>
                       ))}

@@ -37,12 +37,28 @@ export interface ResumeSection {
   bulletPoints?: string[];
 }
 
+export interface Education {
+  id: string;
+  institution: string;
+  degree: string;
+  startDate?: string;
+  endDate?: string;
+}
+
+export interface Certification {
+  id: string;
+  name: string;
+  dateReceived?: string;
+}
+
 export interface ResumeData {
   fullName: string;
   title: string;
   summary: string;
   skills: string;
   experience: ResumeSection[];
+  education?: Education[];
+  certifications?: Certification[];
   profilePicture?: string;
   phone?: string;
   email?: string;

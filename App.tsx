@@ -65,6 +65,27 @@ function App() {
           'Led stakeholder communication, ensuring transparency on project goals, timelines, and deliverables.'
         ]
       }
+    ],
+    education: [
+      {
+        id: 'edu-1',
+        institution: 'National Technical University of Ukraine',
+        degree: 'Master of Science in Computer Science',
+        startDate: '09/2010',
+        endDate: '06/2015'
+      }
+    ],
+    certifications: [
+      {
+        id: 'cert-1',
+        name: 'Certified Scrum Master (CSM)',
+        dateReceived: '03/2020'
+      },
+      {
+        id: 'cert-2',
+        name: 'Project Management Professional (PMP)',
+        dateReceived: '08/2021'
+      }
     ]
   });
 
