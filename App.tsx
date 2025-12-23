@@ -26,53 +26,53 @@ function App() {
 
   // Resume State
   const [resumeData, setResumeData] = useState<ResumeData>({
-    fullName: 'Oleg Saveliev',
+    fullName: 'John Smith',
     title: 'Program and Portfolio Manager',
     summary: 'Results-driven leader with extensive experience in business strategy, development approaches, and value-driven program execution.',
     skills: 'Program Management, Strategic Planning, Team Leadership, Process Optimization',
-    phone: '+380506415777',
-    email: 'osavelyev@gmail.com',
-    linkedin: 'https://www.linkedin.com/in/oleg-savelyev/',
+    phone: '+1-555-123-4567',
+    email: 'john.smith@example.com',
+    linkedin: 'https://www.linkedin.com/in/john-smith-test/',
     location: 'Kiev',
     experience: [
       { 
         id: '1', 
-        title: 'Delivery Lead', 
-        company: 'SQUAD',
-        location: 'Kyiv, Ukraine',
-        startDate: '03/2022',
+        title: 'Senior Software Engineer', 
+        company: 'Tech Solutions Inc',
+        location: 'San Francisco, CA',
+        startDate: '01/2021',
         endDate: 'Present',
-        description: 'Program Manager leading high-impact initiatives within Amazon\'s Ring division.',
-        content: 'Program Portfolio & Technical Program Management (TPM) Leadership',
+        description: 'Lead developer working on cloud-based applications and microservices architecture.',
+        content: 'Full Stack Development & Architecture',
         bulletPoints: [
-          'Program Portfolio & Technical Program Management (TPM) Leadership',
-          'Strategic Forecasting aligned with company objectives',
-          'Process Optimization & PMO Improvements for operational efficiency'
+          'Developed and maintained scalable web applications using React and Node.js',
+          'Led a team of 5 developers in agile development practices',
+          'Improved application performance by 40% through optimization and refactoring'
         ]
       },
       { 
         id: '2', 
-        title: 'Technical Program Manager', 
-        company: 'Ring Ukraine',
-        location: 'Kyiv, Ukraine',
-        startDate: '07/2019',
-        endDate: '03/2022',
-        description: 'Experienced Program Manager leading high-impact initiatives within Amazon\'s Ring division.',
-        content: 'Managed complex, high-visibility projects',
+        title: 'Software Developer', 
+        company: 'Digital Innovations LLC',
+        location: 'New York, NY',
+        startDate: '06/2018',
+        endDate: '12/2020',
+        description: 'Full-stack developer responsible for building and maintaining client-facing applications.',
+        content: 'Web Application Development',
         bulletPoints: [
-          'Managed complex, high-visibility projects with competing priorities.',
-          'Developed and executed detailed project plans, securing resources, driving schedules, and facilitating cross-team collaboration.',
-          'Led stakeholder communication, ensuring transparency on project goals, timelines, and deliverables.'
+          'Built responsive web applications using modern JavaScript frameworks',
+          'Collaborated with cross-functional teams to deliver high-quality software solutions',
+          'Implemented automated testing and CI/CD pipelines'
         ]
       }
     ],
     education: [
       {
         id: 'edu-1',
-        institution: 'National Technical University of Ukraine',
-        degree: 'Master of Science in Computer Science',
-        startDate: '09/2010',
-        endDate: '06/2015'
+        institution: 'State University',
+        degree: 'Bachelor of Science in Computer Science',
+        startDate: '09/2014',
+        endDate: '05/2018'
       }
     ],
     certifications: [
